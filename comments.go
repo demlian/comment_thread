@@ -1,64 +1,71 @@
 package comments
 
-import "fmt"
+import "github.com/google/uuid"
+
+type StorageAdapter interface {
+	AddContent(comment *CommentNode, parentID string)
+	UpdateContent(comment *CommentNode)
+}
+
+type InMemoryStorage struct {
+	comments map[string]*CommentNode
+}
+
+func (i *InMemoryStorage) AddContent(comment *CommentNode, parentID string) {
+	comment.parentID = parentID
+	i.comments[comment.id] = comment
+}
+
+func (i *InMemoryStorage) UpdateContent(comment *CommentNode) {
+	if node, exists := i.comments[comment.id]; exists {
+		node.content = comment.content
+	}
+}
 
 type CommentNode struct {
+	id       string
 	content  string
 	userUUID string
-	children []*CommentNode
+	parentID string
+}
+
+func NewCommentNode(content, userUUID string) *CommentNode {
+
+	return &CommentNode{
+		id:       uuid.New().String(),
+		content:  content,
+		userUUID: userUUID,
+	}
 }
 
 type CommentThread struct {
 	videoUUID string
-	root      *CommentNode
+	storage   StorageAdapter
 }
 
-func NewCommentNode(content, userUUID string) *CommentNode {
-	return &CommentNode{
-		content:  content,
-		userUUID: userUUID,
-		children: []*CommentNode{},
-	}
-}
-
-func (c *CommentNode) AddChild(content, userUUID string) *CommentNode {
-	childNode := NewCommentNode(content, userUUID)
-	c.children = append(c.children, childNode)
-	return childNode
-}
-
-func (c *CommentNode) UpdateContent(content, userUUID string) error {
-	print(c.userUUID)
-	if c.userUUID == userUUID {
-		c.content = content
-		return nil
-	}
-	return fmt.Errorf("only the user who created the content can update it")
-}
-
-func NewCommentThread(videoUUID string, root *CommentNode) *CommentThread {
+func NewCommentThread(videoUUID string, storage StorageAdapter) *CommentThread {
 	return &CommentThread{
 		videoUUID: videoUUID,
-		root:      root,
+		storage:   storage,
 	}
 }
 
 func (c *CommentThread) AddComment(comment, userUUID string, parent *CommentNode) *CommentNode {
+	newComment := NewCommentNode(comment, userUUID)
 	if parent == nil {
-		if c.root == nil {
-			c.root = NewCommentNode(comment, userUUID)
-		} else {
-			return c.root.AddChild(comment, userUUID)
-		}
+		c.storage.AddContent(newComment, "")
 	} else {
-		return parent.AddChild(comment, userUUID)
+		c.storage.AddContent(newComment, parent.id)
 	}
-	return nil
+	return newComment
 }
 
-func (c *CommentThread) UpdateComment(comment, userUUID string, node *CommentNode) error {
-	if node == nil {
-		return fmt.Errorf("no comments exist in the thread")
+func (c *CommentThread) UpdateComment(comment, userUUID string, node *CommentNode) *CommentNode {
+	// TODO: Ensure the node exists before updating its content.
+	if node.userUUID != userUUID {
+		return nil
 	}
-	return node.UpdateContent(comment, userUUID)
+	node.content = comment
+	c.storage.UpdateContent(node)
+	return node
 }
