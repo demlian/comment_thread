@@ -4,8 +4,9 @@ The `comments` package provides a simple implementation of a comment thread syst
 
 ## Design Choices
 
-1. **Immutable comments**: In this implementation, once a comment is added, it cannot be deleted. This simplifies the design as there's no need to verify whether a comment exists before updating it.
-
-2. **No spam protection**: The system does not check for identical comments, meaning that a user can add the same comment multiple times. This simplifies the design as there's no need for spam protection.
-
-3. **No concurrency control**: The system assumes that users can only update their own comments. As such, there will not be concurrent attempts to update the same comment. This simplifies the design as there's no need for concurrency control mechanisms.
+1. **Immutable comments**: In this implementation, once a comment is added, it cannot be deleted.
+1. **No spam protection**: The system does not check for identical comments, meaning that a user can add the same comment multiple times.
+1. **No concurrency control**: The system assumes that users can only update their own comments. As such, there will not be concurrent attempts to update the same comment.
+1. **Storage Adapter Interface**: The system uses a `StorageAdapter` interface to abstract the storage mechanism.
+1. **InMemoryStorage Implementation**: The `InMemoryStorage` struct is an implementation of the `StorageAdapter` interface. It stores comments in a map, with the comment ID as the key.
+1. **Parent ID Approach**: The system uses the Parent ID approach for managing comment relationships. Each `CommentNode` has a `parentID` field, which is the ID of its parent comment. An older commit showed a more academic recursive approach, where each comment node had a list of its child comments.
