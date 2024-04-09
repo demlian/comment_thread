@@ -1,5 +1,8 @@
 # Comments Package
 
+> **Please note:** Exercise aimed at practicing Go language constructs, data structures, and design patterns.
+ 
+
 The `comments` package provides a simple implementation of a comment thread system. Each comment is represented by a `CommentNode` and the entire comment thread for a video is represented by a `CommentThread`.
 
 ## Design Choices
