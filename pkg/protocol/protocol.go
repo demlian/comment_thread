@@ -18,13 +18,17 @@ type Response struct {
 	Data string
 }
 
-func parseRequest(data string) (*Request, error) {
+func newRequest(data string) (*Request, error) {
 	parts := strings.Split(data, "|")
 	if len(parts) < 2 {
 		return nil, fmt.Errorf("invalid request format: %s", data)
 	}
 
-	request := &Request{}
+	request := &Request{
+		ID:   "",
+		Type: "",
+		Data: data,
+	}
 	if len(parts) > 0 && parts[0] != "" {
 		request.ID = parts[0]
 	}
@@ -39,7 +43,7 @@ func parseRequest(data string) (*Request, error) {
 }
 
 func HandleRequest(connHash string, data string) (*Response, error) {
-	req, err := parseRequest(data)
+	req, err := newRequest(data)
 	if err != nil {
 		return nil, err
 	}
