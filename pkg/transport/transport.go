@@ -1,24 +1,48 @@
 package transport
 
 import (
+	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"log"
 	"net"
 )
 
 // Connection represents a TCP connection.
 type Connection struct {
-	Conn net.Conn
+	Conn   net.Conn
+	Reader *bufio.Reader
+	Writer *bufio.Writer
 }
 
+func (c *Connection) Init() {
+	c.Reader = bufio.NewReader(c.Conn)
+	c.Writer = bufio.NewWriter(c.Conn)
+}
+
+func (c *Connection) ReadMessage() (string, error) {
+	data, err := c.Reader.ReadString('\n')
+	if err != nil {
+		if err == io.EOF {
+			log.Println("client closed the connection")
+		}
+		return "", err
+	}
+	return data, nil
+}
 func (c *Connection) Write(responseID, responseData string) {
-	n, err := c.Conn.Write([]byte(responseID + responseData + "\n"))
+	data := []byte(fmt.Sprintf("%s%s\n", responseID, responseData))
+	_, err := c.Writer.Write(data)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	err = c.Writer.Flush()
 	if err != nil {
 		log.Println(err)
 	}
-	log.Printf("wrote %d bytes", n)
 }
 
 // ComputeHash computes the hash of the TCP 5-tuple.

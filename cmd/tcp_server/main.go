@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"io"
 	"log"
@@ -36,13 +35,13 @@ func main() {
 
 func handleConnection(conn transport.Connection) {
 	defer conn.Conn.Close()
-	reader := bufio.NewReader(conn.Conn)
+	conn.Init()
 
 	for {
-		data, err := reader.ReadString('\n')
+		data, err := conn.ReadMessage()
 		if err != nil {
 			if err == io.EOF {
-				log.Println("Client closed the connection")
+				log.Println("client closed the connection")
 				break
 			}
 			log.Println(err)
