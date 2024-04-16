@@ -1,10 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"io"
 	"log"
 	"net"
+
+	"github.com/demlian/comment_thread/pkg/protocol"
+	"github.com/demlian/comment_thread/pkg/transport"
 )
 
 func main() {
@@ -15,21 +19,48 @@ func main() {
 		log.Fatal(err)
 	}
 	defer listener.Close()
+	log.Printf("Server listening on %s:%s", listener.Addr().(*net.TCPAddr).IP, *port)
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			log.Fatal(err)
+			log.Println("connection failed:", err)
+			continue
 		}
-		go handleConnection(conn)
+		log.Println("Accepted connection from:", conn.RemoteAddr())
+
+		connection := transport.Connection{Conn: conn}
+		go handleConnection(connection)
 	}
 }
 
-func handleConnection(conn net.Conn) {
-	defer conn.Close()
-	n, err := io.Copy(conn, conn)
-	if err != nil {
-		log.Fatal(err)
+func handleConnection(conn transport.Connection) {
+	defer conn.Conn.Close()
+	reader := bufio.NewReader(conn.Conn)
+
+	for {
+		data, err := reader.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				log.Println("Client closed the connection")
+				break
+			}
+			log.Println(err)
+			continue
+		}
+		connHash, err := conn.ComputeHash()
+		if err != nil {
+			log.Println(err)
+		}
+
+		response, err := protocol.HandleRequest(connHash, data)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		_, err = conn.Conn.Write([]byte(response.ID + response.Data + "\n"))
+		if err != nil {
+			log.Println(err)
+		}
 	}
-	log.Printf("Received and sent %d bytes from/to %s", n, conn.RemoteAddr().String())
 }
