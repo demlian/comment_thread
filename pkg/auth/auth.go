@@ -14,12 +14,6 @@ type UserContext struct {
 var userContexts sync.Map // Map to store requestID -> UserContext
 
 func HandleSignIn(connHash string, userName string) error {
-	if userName == "" {
-		return errors.New("cannot sign in; missing user name")
-	}
-	if connHash == "" {
-		return errors.New("cannot sign in; missing connection information")
-	}
 	_, ok := userContexts.Load(string(connHash))
 	if ok {
 		return errors.New("a user is already signed in with this connection")
