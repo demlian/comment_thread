@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"log"
 	"sync"
 )
 
@@ -39,6 +40,7 @@ func HandleSignOut(connHash string) error {
 func HandleWhoAmI(connHash string) string {
 	ctx, ok := userContexts.Load(connHash)
 	if !ok {
+		log.Println("no user is signed in from this client")
 		return ""
 	}
 	userCtx := ctx.(*UserContext)

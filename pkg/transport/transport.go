@@ -4,12 +4,21 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net"
 )
 
 // Connection represents a TCP connection.
 type Connection struct {
 	Conn net.Conn
+}
+
+func (c *Connection) Write(responseID, responseData string) {
+	n, err := c.Conn.Write([]byte(responseID + responseData + "\n"))
+	if err != nil {
+		log.Println(err)
+	}
+	log.Printf("wrote %d bytes", n)
 }
 
 // ComputeHash computes the hash of the TCP 5-tuple.

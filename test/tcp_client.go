@@ -26,7 +26,9 @@ func main() {
 		"ougmcim|SIGN_IN|janedoe\n",
 		"iwhygsi|WHOAMI\n",
 		"cadlsdo|SIGN_OUT\n",
-		"asdasas|WHOAMI\n",
+		"okcypwj|SIGN_IN|Alpha\n",
+		"lpibxvh|WHOAMI\n",
+		"igjabdx|SIGN_OUT\n",
 	}
 
 	reader := bufio.NewReader(conn)

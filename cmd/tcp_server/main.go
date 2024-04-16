@@ -58,9 +58,6 @@ func handleConnection(conn transport.Connection) {
 			log.Println(err)
 			continue
 		}
-		_, err = conn.Conn.Write([]byte(response.ID + response.Data + "\n"))
-		if err != nil {
-			log.Println(err)
-		}
+		conn.Write(response.ID, response.Data)
 	}
 }
