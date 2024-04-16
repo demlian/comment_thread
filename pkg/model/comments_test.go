@@ -1,4 +1,4 @@
-package comments
+package model
 
 import (
 	"testing"
