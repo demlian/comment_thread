@@ -38,12 +38,13 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		fmt.Printf("-> %s", request)
 
 		response, err := reader.ReadString('\n')
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Received: %s", response)
+		fmt.Printf("<- %s", response)
 	}
 }
