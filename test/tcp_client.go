@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"flag"
+	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
 func main() {
@@ -14,18 +17,31 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func() {
+		time.Sleep(1000 * time.Millisecond)
+		conn.Close()
+	}()
 
-	_, err = conn.Write([]byte("Hello, server!"))
-	if err != nil {
-		log.Fatal(err)
+	requests := []string{
+		"ougmcim|SIGN_IN|janedoe\n",
+		"iwhygsi|WHOAMI\n",
+		"cadlsdo|SIGN_OUT\n",
+		"asdasas|WHOAMI\n",
 	}
 
-	buf := make([]byte, 1024)
-	n, err := conn.Read(buf)
-	if err != nil {
-		log.Fatal(err)
-	}
+	reader := bufio.NewReader(conn)
 
-	log.Printf("Received: %s", string(buf[:n]))
+	for _, request := range requests {
+		_, err = conn.Write([]byte(request))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		response, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Printf("Received: %s", response)
+	}
 }
