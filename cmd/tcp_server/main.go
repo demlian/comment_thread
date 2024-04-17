@@ -57,6 +57,6 @@ func handleConnection(conn transport.Connection) {
 			log.Println(err)
 			continue
 		}
-		conn.Write(response.ID, response.Data)
+		conn.Write(response.ResponseId, response.Data)
 	}
 }

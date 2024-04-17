@@ -2,41 +2,41 @@ package protocol
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/demlian/comment_thread/pkg/auth"
 )
 
 type Request struct {
-	ID   string
-	Type string
-	Data string
+	requestId string
+	verb      string
+	data      string
 }
 
 type Response struct {
-	ID   string
-	Data string
+	ResponseId string
+	Data       string
+}
+
+func isValidRequestId(request *Request) bool {
+	pattern := "^[a-z]{7}$"
+	matched, _ := regexp.MatchString(pattern, request.requestId)
+	return matched
 }
 
 func newRequest(data string) (*Request, error) {
 	parts := strings.Split(data, "|")
-	if len(parts) < 2 {
+	if len(parts) < 2 || len(parts) > 3 {
 		return nil, fmt.Errorf("invalid request format: %s", data)
 	}
-
-	request := &Request{
-		ID:   "",
-		Type: "",
-		Data: data,
+	request := &Request{requestId: strings.TrimSpace(parts[0])}
+	if !isValidRequestId(request) {
+		return nil, fmt.Errorf("invalid request ID format: %s", request.requestId)
 	}
-	if len(parts) > 0 && parts[0] != "" {
-		request.ID = parts[0]
-	}
-	if len(parts) > 1 && parts[1] != "" {
-		request.Type = parts[1]
-	}
-	if len(parts) > 2 && parts[2] != "" {
-		request.Data = parts[2]
+	request.verb = strings.TrimSpace(parts[1])
+	if len(parts) > 2 {
+		request.data = strings.TrimSpace(parts[2])
 	}
 
 	return request, nil
@@ -48,18 +48,18 @@ func HandleRequest(connHash string, data string) (*Response, error) {
 		return nil, err
 	}
 	var rsp Response
-	switch strings.TrimSpace(req.Type) {
+	switch req.verb {
 	case "SIGN_IN":
-		err = auth.HandleSignIn(connHash, req.Data)
-		rsp = Response{ID: req.ID}
+		err = auth.HandleSignIn(connHash, req.data)
+		rsp = Response{ResponseId: req.requestId}
 	case "SIGN_OUT":
 		err = auth.HandleSignOut(connHash)
-		rsp = Response{ID: req.ID}
+		rsp = Response{ResponseId: req.requestId}
 	case "WHOAMI":
 		userName := auth.HandleWhoAmI(connHash)
-		rsp = Response{ID: req.ID, Data: userName}
+		rsp = Response{ResponseId: req.requestId, Data: userName}
 	default:
-		rsp = Response{ID: "request ID: " + req.ID, Data: " request type not supported: " + req.Type}
+		rsp = Response{ResponseId: "request ID: " + req.requestId, Data: " request type not supported: " + req.verb}
 	}
 
 	return &rsp, err
