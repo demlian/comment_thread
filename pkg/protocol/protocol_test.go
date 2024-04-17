@@ -1,61 +1,40 @@
 package protocol
 
 import (
-	"fmt"
 	"testing"
 )
 
-func TestNewRequest(t *testing.T) {
+func TestHandleRequest(t *testing.T) {
 	tests := []struct {
-		name     string
-		data     string
-		expected *Request
-		err      error
+		connHash string
+		request  string
+		response string
 	}{
-		{
-			name: "ValidRequest",
-			data: "okcypwj|VERB|Data",
-			expected: &Request{
-				requestId: "okcypwj",
-				verb:      "VERB",
-				data:      "Data",
-			},
-			err: nil,
-		},
-		{
-			name:     "InvalidRequestSeparator",
-			data:     "invalid-data",
-			expected: nil,
-			err:      fmt.Errorf("received invalid data format: invalid-data"),
-		},
-		{
-			name:     "InvalidRequestIdLEngth",
-			data:     "request-id|verb|data",
-			expected: nil,
-			err:      fmt.Errorf("received invalid request ID format: request-id"),
-		},
+		{"0", "hgfmesf|SIGN_IN|Alpha", "hgfmesf"},
+		{"0", "kudfemb|WHOAMI", "kudfemb|Alpha"},
+		{"0", "zxxypev|SIGN_OUT", "zxxypev"},
+		{"1", "ssdahny|SIGN_IN|Bravo", "ssdahny"},
+		{"1", "mifyjcp|WHOAMI", "mifyjcp|Bravo"},
+		{"1", "pzidies|SIGN_OUT", "pzidies"},
+		{"2", "tsgnvdr|SIGN_IN|Charlie", "tsgnvdr"},
+		{"2", "krisrfv|WHOAMI", "krisrfv|Charlie"},
+		{"2", "rujbwob|SIGN_OUT", "rujbwob"},
+		{"1", "akapqqn|SIGN_IN|Alpha", "akapqqn"},
+		{"2", "grnssff|SIGN_IN|Bravo", "grnssff"},
+		{"3", "rzarqfx|SIGN_IN|Charlie", "rzarqfx"},
+		{"1", "csqhviu|WHOAMI", "csqhviu|Alpha"},
+		{"2", "yaewjvu|WHOAMI", "yaewjvu|Bravo"},
+		{"3", "anyzpoh|WHOAMI", "anyzpoh|Charlie"},
+		{"1", "ykeybfr|SIGN_IN|Alpha", "ykeybfr"},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			request, err := newRequest(tt.data)
-			if err != nil && tt.err == nil {
-				t.Errorf("newRequest returned an unexpected error: %v; expected: %+v", err, tt.expected)
-			}
-			if err == nil && tt.err != nil {
-				t.Errorf("newRequest returned the following request: %+v; expected error: %v", request, tt.err)
-			}
-			if request != nil && tt.expected != nil {
-				if request.requestId != tt.expected.requestId {
-					t.Errorf("newRequest returned incorrect requestId. Expected: %s, Got: %s", tt.expected.requestId, request.requestId)
-				}
-				if request.verb != tt.expected.verb {
-					t.Errorf("newRequest returned incorrect verb. Expected: %s, Got: %s", tt.expected.verb, request.verb)
-				}
-				if request.data != tt.expected.data {
-					t.Errorf("newRequest returned incorrect data. Expected: %s, Got: %s", tt.expected.data, request.data)
-				}
-			}
-		})
+		response, err := HandleRequest(tt.connHash, tt.request)
+		if err != nil {
+			t.Errorf("HandleRequest(%q, %q) returned error: %v", tt.connHash, tt.request, err)
+		}
+		if response != tt.response {
+			t.Errorf("HandleRequest(%q, %q) = %q, want %q", tt.connHash, tt.request, response, tt.response)
+		}
 	}
 }

@@ -1,42 +1,41 @@
 package auth
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"sync"
 )
 
 type UserContext struct {
-	Username      string
-	TCP5TupleHash string
+	userName string
+	signedIn bool
 }
 
-var userContexts sync.Map // Map to store requestID -> UserContext
+var userContexts sync.Map // Map to store connHash -> *UserContext
 
 func HandleSignIn(connHash string, userName string) error {
-	_, ok := userContexts.Load(string(connHash))
-	if ok {
-		return errors.New("a user is already signed in with this connection")
+	_, loaded := userContexts.LoadOrStore(connHash, &UserContext{userName: userName, signedIn: true})
+	if loaded {
+		// Idempotent operation.
+		log.Printf("User %s is already signed in", userName)
 	}
-
-	userContexts.Store(connHash, &UserContext{Username: userName, TCP5TupleHash: connHash})
 	return nil
 }
+
 func HandleSignOut(connHash string) error {
 	_, ok := userContexts.Load(connHash)
 	if !ok {
-		return errors.New("no user is signed in with this connection")
+		return fmt.Errorf("no user is signed in from this connection")
 	}
-
 	userContexts.Delete(connHash)
 	return nil
 }
-func HandleWhoAmI(connHash string) string {
-	ctx, ok := userContexts.Load(connHash)
+
+func HandleWhoAmI(connHash string) (string, error) {
+	user, ok := userContexts.Load(connHash)
 	if !ok {
-		log.Println("no user is signed in from this client")
-		return ""
+		return "", fmt.Errorf("no user is signed in from this connection")
 	}
-	userCtx := ctx.(*UserContext)
-	return "|" + userCtx.Username
+	userCtx := user.(*UserContext)
+	return userCtx.userName, nil
 }
