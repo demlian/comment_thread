@@ -52,11 +52,11 @@ func handleConnection(conn transport.Connection) {
 			log.Println(err)
 		}
 
-		response, err := protocol.HandleRequest(connHash, data)
+		responseString, err := protocol.HandleRequest(connHash, data)
 		if err != nil {
 			log.Println(err)
 			continue
 		}
-		conn.Write(response.ResponseId, response.Data)
+		conn.Write("", responseString)
 	}
 }

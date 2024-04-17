@@ -25,7 +25,7 @@ func isValidRequestId(request *Request) bool {
 	return matched
 }
 
-func newRequest(data string) (*Request, error) {
+func adaptTextToRequest(data string) (*Request, error) {
 	parts := strings.Split(data, "|")
 	if len(parts) < 2 || len(parts) > 3 {
 		return nil, fmt.Errorf("invalid request format: %s", data)
@@ -42,10 +42,10 @@ func newRequest(data string) (*Request, error) {
 	return request, nil
 }
 
-func HandleRequest(connHash string, data string) (*Response, error) {
-	req, err := newRequest(data)
+func HandleRequest(connHash string, data string) (string, error) {
+	req, err := adaptTextToRequest(data)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	var rsp Response
 	switch req.verb {
@@ -56,11 +56,24 @@ func HandleRequest(connHash string, data string) (*Response, error) {
 		err = auth.HandleSignOut(connHash)
 		rsp = Response{ResponseId: req.requestId}
 	case "WHOAMI":
-		userName := auth.HandleWhoAmI(connHash)
+		var userName string
+		userName, err = auth.HandleWhoAmI(connHash)
 		rsp = Response{ResponseId: req.requestId, Data: userName}
 	default:
 		rsp = Response{ResponseId: "request ID: " + req.requestId, Data: " request type not supported: " + req.verb}
 	}
 
-	return &rsp, err
+	responseString := adaptResponseToText(&rsp)
+	return responseString, err
+}
+
+func adaptResponseToText(rsp *Response) string {
+	var responseString string
+	if rsp.Data != "" {
+		responseString = fmt.Sprintf("%s|%s", rsp.ResponseId, rsp.Data)
+	} else {
+		responseString = rsp.ResponseId
+	}
+
+	return responseString
 }
