@@ -42,7 +42,7 @@ func adaptTextToRequest(data string) (*Request, error) {
 	return request, nil
 }
 
-func HandleRequest(connHash string, data string) (string, error) {
+func HandleRequest(uuid string, data string) (string, error) {
 	req, err := adaptTextToRequest(data)
 	if err != nil {
 		return "", err
@@ -50,14 +50,14 @@ func HandleRequest(connHash string, data string) (string, error) {
 	var rsp Response
 	switch req.verb {
 	case "SIGN_IN":
-		err = auth.HandleSignIn(connHash, req.data)
+		err = auth.HandleSignIn(uuid, req.data)
 		rsp = Response{ResponseId: req.requestId}
 	case "SIGN_OUT":
-		err = auth.HandleSignOut(connHash)
+		err = auth.HandleSignOut(uuid)
 		rsp = Response{ResponseId: req.requestId}
 	case "WHOAMI":
 		var userName string
-		userName, err = auth.HandleWhoAmI(connHash)
+		userName, err = auth.HandleWhoAmI(uuid)
 		rsp = Response{ResponseId: req.requestId, Data: userName}
 	default:
 		rsp = Response{ResponseId: "request ID: " + req.requestId, Data: " request type not supported: " + req.verb}

@@ -47,12 +47,14 @@ func handleConnection(conn transport.Connection) {
 			log.Println(err)
 			continue
 		}
-		connHash, err := conn.ComputeHash()
+
+		// Compute the hash of the connection 5-tuple to identify the user.
+		uuid, err := conn.ComputeHash()
 		if err != nil {
 			log.Println(err)
 		}
 
-		responseString, err := protocol.HandleRequest(connHash, data)
+		responseString, err := protocol.HandleRequest(uuid, data)
 		if err != nil {
 			log.Println(err)
 			continue

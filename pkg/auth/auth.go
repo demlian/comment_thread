@@ -11,10 +11,10 @@ type UserContext struct {
 	signedIn bool
 }
 
-var userContexts sync.Map // Map to store connHash -> *UserContext
+var userContexts sync.Map // Map to store uuid -> *UserContext
 
-func HandleSignIn(connHash string, userName string) error {
-	_, loaded := userContexts.LoadOrStore(connHash, &UserContext{userName: userName, signedIn: true})
+func HandleSignIn(uuid string, userName string) error {
+	_, loaded := userContexts.LoadOrStore(uuid, &UserContext{userName: userName, signedIn: true})
 	if loaded {
 		// Idempotent operation.
 		log.Printf("User %s is already signed in", userName)
@@ -22,17 +22,17 @@ func HandleSignIn(connHash string, userName string) error {
 	return nil
 }
 
-func HandleSignOut(connHash string) error {
-	_, ok := userContexts.Load(connHash)
+func HandleSignOut(uuid string) error {
+	_, ok := userContexts.Load(uuid)
 	if !ok {
 		return fmt.Errorf("no user is signed in from this connection")
 	}
-	userContexts.Delete(connHash)
+	userContexts.Delete(uuid)
 	return nil
 }
 
-func HandleWhoAmI(connHash string) (string, error) {
-	user, ok := userContexts.Load(connHash)
+func HandleWhoAmI(uuid string) (string, error) {
+	user, ok := userContexts.Load(uuid)
 	if !ok {
 		return "", fmt.Errorf("no user is signed in from this connection")
 	}

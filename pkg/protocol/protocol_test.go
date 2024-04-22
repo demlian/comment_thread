@@ -4,9 +4,9 @@ import (
 	"testing"
 )
 
-func TestHandleRequest(t *testing.T) {
-	tests := []struct {
-		connHash string
+func TestHandleAuthService(t *testing.T) {
+	authTests := []struct {
+		uuid     string
 		request  string
 		response string
 	}{
@@ -28,13 +28,13 @@ func TestHandleRequest(t *testing.T) {
 		{"1", "ykeybfr|SIGN_IN|Alpha", "ykeybfr"},
 	}
 
-	for _, tt := range tests {
-		response, err := HandleRequest(tt.connHash, tt.request)
+	for _, tt := range authTests {
+		response, err := HandleRequest(tt.uuid, tt.request)
 		if err != nil {
-			t.Errorf("HandleRequest(%q, %q) returned error: %v", tt.connHash, tt.request, err)
+			t.Errorf("HandleRequest(%q, %q) returned error: %v", tt.uuid, tt.request, err)
 		}
 		if response != tt.response {
-			t.Errorf("HandleRequest(%q, %q) = %q, want %q", tt.connHash, tt.request, response, tt.response)
+			t.Errorf("HandleRequest(%q, %q) = %q, want %q", tt.uuid, tt.request, response, tt.response)
 		}
 	}
 }
